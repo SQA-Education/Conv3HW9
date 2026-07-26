@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversation Class · Week 5 · Class 9 — Hidden Gems</title>
+<style>
+  :root{
+    --purple:#5b2c91; --purple-dark:#3d1d63; --purple-light:#7e4cc4;
+    --lilac:#f3edfb; --lilac-mid:#e4d6f7; --gold:#f5b921;
+    --ink:#2b2440; --muted:#6b6480; --good:#1f9d57; --bad:#d64545;
+    --card:#ffffff; --line:#e0d4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(150deg,#ede4fb 0%,#f7f3fc 55%,#fdf6e9 100%);
+    color:var(--ink);min-height:100vh;padding:24px 14px;line-height:1.6;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+  .card{
+    background:var(--card);border-radius:20px;padding:32px 30px;
+    box-shadow:0 14px 40px rgba(61,29,99,.14);border:1px solid var(--line);
+  }
+  .screen{display:none;}
+  .screen.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .brand{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--purple-light);font-weight:700;margin-bottom:6px;}
+  h1{font-size:1.6rem;color:var(--purple-dark);line-height:1.25;margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:.95rem;margin-bottom:22px;}
+  h2{font-size:1.15rem;color:var(--purple-dark);margin-bottom:4px;
+    display:flex;align-items:center;gap:9px;}
+  .tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--lilac-mid);color:var(--purple);padding:3px 9px;
+    border-radius:20px;font-weight:700;}
+  .intro-note{color:var(--muted);font-size:.9rem;margin:8px 0 18px;}
+
+  .progress{display:flex;gap:6px;margin-bottom:22px;}
+  .progress span{flex:1;height:7px;border-radius:6px;background:var(--lilac-mid);}
+  .progress span.done{background:var(--purple-light);}
+  .progress span.now{background:var(--gold);}
+
+  .passage{background:var(--lilac);border-left:4px solid var(--purple-light);
+    border-radius:0 12px 12px 0;padding:16px 18px;margin:14px 0 20px;font-size:.96rem;}
+  .passage h3{color:var(--purple-dark);font-size:1.02rem;margin-bottom:8px;}
+  .passage .dateline{font-size:.78rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--purple-light);font-weight:700;margin-bottom:6px;}
+  .passage p{margin-bottom:10px;}
+  .passage .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;
+    background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 14px;
+    line-height:1.7;white-space:pre-wrap;margin-bottom:10px;}
+
+  .videobox{position:relative;width:100%;padding-top:56.25%;border-radius:13px;
+    overflow:hidden;background:#000;margin:14px 0 8px;border:1px solid var(--line);}
+  .videobox iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+  .videolink{display:inline-block;font-size:.86rem;color:var(--purple);
+    font-weight:700;text-decoration:underline;margin-bottom:18px;}
+
+  .q{margin:18px 0;padding-bottom:6px;}
+  .q .qtext{font-weight:600;margin-bottom:10px;}
+  .opt{display:block;border:1.6px solid var(--line);border-radius:11px;
+    padding:11px 14px;margin:7px 0;cursor:pointer;transition:.15s;font-size:.94rem;}
+  .opt:hover{border-color:var(--purple-light);background:var(--lilac);}
+  .opt.sel{border-color:var(--purple);background:var(--lilac-mid);font-weight:600;}
+  .opt.correct{border-color:var(--good);background:#e5f6ec;}
+  .opt.wrong{border-color:var(--bad);background:#fbe7e7;}
+  .opt input{margin-right:9px;}
+
+  .gap{margin:14px 0;font-size:.96rem;}
+  .gap label{font-weight:600;display:block;margin-bottom:6px;}
+  select,input[type=text],textarea{
+    font-family:inherit;font-size:.95rem;width:100%;padding:10px 12px;
+    border:1.6px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+  }
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--purple-light);}
+  textarea{resize:vertical;min-height:140px;}
+  .wordbank{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 6px;}
+  .chip{background:var(--lilac-mid);color:var(--purple-dark);font-weight:600;
+    font-size:.84rem;padding:5px 11px;border-radius:20px;}
+
+  .feedback{margin-top:14px;padding:13px 15px;border-radius:11px;font-size:.92rem;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#e5f6ec;color:#176b3d;border:1px solid #b6e2c6;}
+  .feedback.no{background:#fbe7e7;color:#9c2b2b;border:1px solid #f0bcbc;}
+  .feedback.info{background:var(--lilac);color:var(--purple-dark);border:1px solid var(--line);}
+
+  .btn{background:var(--purple);color:#fff;border:none;border-radius:12px;
+    padding:13px 26px;font-size:1rem;font-weight:700;cursor:pointer;
+    transition:.18s;font-family:inherit;margin-top:18px;}
+  .btn:hover{background:var(--purple-dark);transform:translateY(-1px);}
+  .btn.ghost{background:var(--lilac-mid);color:var(--purple-dark);}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .speak-box{background:var(--lilac);border-radius:14px;padding:18px;margin:14px 0;}
+  .timer{font-size:2.1rem;font-weight:800;color:var(--purple-dark);text-align:center;margin:6px 0;}
+  .mic-status{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:8px;}
+  .transcript{background:#fff;border:1.4px dashed var(--line);border-radius:10px;
+    padding:11px 13px;min-height:62px;font-size:.92rem;color:var(--ink);margin-top:10px;}
+  .pulse{display:inline-block;width:11px;height:11px;border-radius:50%;
+    background:var(--bad);margin-right:6px;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+  .scorebig{font-size:3rem;font-weight:800;color:var(--purple-dark);text-align:center;}
+  .scoreline{text-align:center;color:var(--muted);margin-bottom:18px;}
+  .breakdown{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;}
+  .breakdown div{display:flex;justify-content:space-between;padding:10px 15px;
+    border-bottom:1px solid var(--line);font-size:.93rem;}
+  .breakdown div:last-child{border-bottom:none;font-weight:700;background:var(--lilac);}
+
+  .checklist{font-size:.88rem;color:var(--muted);margin:8px 0 0;padding-left:18px;}
+  .checklist li{margin:3px 0;}
+  .success{background:#e5f6ec;border:1px solid #b6e2c6;color:#176b3d;
+    border-radius:12px;padding:16px;text-align:center;font-weight:600;display:none;margin-top:16px;}
+  .success.show{display:block;}
+  .tip{font-size:.86rem;color:var(--muted);font-style:italic;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ CONFIG ============ -->
+<script>
+const CONFIG = {
+  FORM_URL: "https://docs.google.com/forms/d/e/1FAIpQLSftntztcKJlKFeJTtu7CiHniOUFFfGBmRhclyzqz7CGUMwkPQ/formResponse",
+  ENTRY: {
+    studentName:  "entry.154629934",
+    classCode:    "entry.771629595",
+    session:      "entry.1564061356",
+    listening:    "entry.1994438750",
+    vocab:        "entry.1169985852",
+    writing:      "entry.66378887",
+    speaking:     "entry.665897330",
+    grammar:      "entry.1528226896",
+    percent:      "entry.543147037",
+    writingText:  "entry.301386877",
+    aiFeedback:   "entry.1035810181",
+    teacher:      "entry.1451249480"
+  },
+  CLASSES: [
+    {code:"3096", label:"3096 \u2014 Morning (9:00 \u2013 10:30 AM) \u2014 Laura Ebel",   teacher:"Laura Ebel"},
+    {code:"3091", label:"3091 \u2014 Evening (6:30 \u2013 8:00 PM) \u2014 Laura Ebel",   teacher:"Laura Ebel"}
+  ],
+  SESSION_LABEL: "Week 5 - Class 9"
+};
+</script>
+
+<div class="card">
+
+<!-- ===================== SCREEN 0 — START ===================== -->
+<div class="screen active" id="s0">
+  <div class="brand">English Class · SQA Education</div>
+  <h1>Hidden Gems</h1>
+  <div class="sub">Conversation Course · Week 5 · Class 9<br>
+  <strong>The Unseen City · Adjective Order &amp; Intensifiers</strong></div>
+
+  <div class="passage" style="border-left-color:var(--gold);">
+    <h3>Here's the plan 👋</h3>
+    <p>Five short sections. Today you'll read <strong>The Secret Economy of the Unseen
+    City</strong> — why the small, unglamorous places in a neighborhood matter more than the
+    glassy ones — then practice the vocabulary of urban discovery, plus
+    <strong>adjective order</strong> and <strong>intensifiers</strong>. The big section is
+    <strong>speaking</strong> — you'll describe your own hidden gem out loud.</p>
+    <p>Work at your own pace. Nothing submits until you press Finish.</p>
+  </div>
+
+  <div class="gap">
+    <label>First, your name</label>
+    <input type="text" id="studentName" placeholder="Type your full name">
+  </div>
+  <div class="gap">
+    <label>Your class</label>
+    <select id="classSelect"></select>
+  </div>
+  <button class="btn" onclick="go(1)">Start →</button>
+</div>
+
+<!-- ===================== SCREEN 1 — READING ===================== -->
+<div class="screen" id="s1">
+  <div class="progress"><span class="now"></span><span></span><span></span><span></span><span></span></div>
+  <h2><span class="tag">1 · Read</span> Reading Comprehension</h2>
+  <div class="intro-note">Read the feature article below, then answer the questions.</div>
+
+  <div class="passage">
+    <div class="dateline">Feature Article · By Marcus Vance</div>
+    <h3>The Secret Economy of the Unseen City</h3>
+    <p>When we think of urban development, we often think of massive public works: glistening transit
+    hubs, sprawling shopping districts, and high-rise apartment structures. These visible entities are
+    the traditional metrics of a city's success. However, urban sociological studies indicate that an
+    entirely separate, invisible infrastructure dictates the actual social health of a community —
+    particularly for newly arrived immigrant populations. This infrastructure is composed entirely of
+    localized &ldquo;hidden gems.&rdquo;</p>
+    <p>These independent businesses — ranging from back-alley grocery stores to unassuming community
+    gardens — serve a far more vital role than mere commerce. Urban ordinances often favor large
+    corporate developments due to tax incentives, accidentally pushing independent local establishments
+    to the margins. Yet, it is precisely within these peripheral spaces that integration happens. When a
+    newcomer enters a mainstream, corporate retail chain, their interaction is strictly transactional.
+    There is no space for cultural exchange, storytelling, or mutual support.</p>
+    <p>Conversely, when immigrants locate and regularize their presence at local, community-specific
+    sanctuaries, a shift occurs. These spaces function as informal information centers. Here, a patron
+    does not just buy a product; they find housing leads, translation help, and emotional solidarity. To
+    the casual, wealthy tourist, an old neighborhood diner might appear as an aesthetic, slightly
+    dilapidated novelty. But to the resident immigrant population, that very same diner represents
+    safety, continuity, and an accessible doorway into American civic life. Preserving these spaces is
+    not an issue of neighborhood sentimentality; it is a matter of critical socio-economic survival.</p>
+  </div>
+
+  <div id="readingQs"></div>
+  <button class="btn" onclick="go(2)">Next: Vocabulary →</button>
+</div>
+
+<!-- ===================== SCREEN 2 — VOCABULARY ===================== -->
+<div class="screen" id="s2">
+  <div class="progress"><span class="done"></span><span class="now"></span><span></span><span></span><span></span></div>
+  <h2><span class="tag">2 · Vocabulary</span> Describing the Neighborhood</h2>
+  <div class="intro-note">Fill in the blanks using the correct word or phrase from the box. Each word is used <strong>only once</strong>.</div>
+
+  <div class="wordbank" id="wordbank"></div>
+  <div id="vocabQs"></div>
+  <button class="btn" onclick="go(3)">Next: Writing →</button>
+</div>
+
+<!-- ===================== SCREEN 3 — WRITING ===================== -->
+<div class="screen" id="s3">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span></div>
+  <h2><span class="tag">3 · Write</span> Your Hidden Gem</h2>
+  <div class="intro-note">Write a well-structured paragraph (<strong>6 to 9 sentences</strong>) describing your absolute favorite hidden gem. This can be a real place in your current town or from your home country.</div>
+
+  <div class="passage">
+    <p>📏 <strong>Adjective order:</strong> Opinion ➔ Size/Quality ➔ Age ➔ Material<br>
+    <em>&ldquo;a remarkably quiet, small, old, wooden establishment&rdquo;</em></p>
+    <p>🔊 <strong>Intensifiers:</strong> incredibly · absolutely · remarkably · utterly</p>
+  </div>
+
+  <textarea id="writingText" placeholder="My favorite hidden gem is an absolutely charming, tiny, old, brick bakery tucked into an alley in the vicinity of &hellip;"></textarea>
+  <ul class="checklist">
+    <li>A paragraph of 6–9 sentences</li>
+    <li>Correct adjective order (Opinion ➔ Size/Quality ➔ Age ➔ Material)</li>
+    <li>At least 2 intensifiers (<em>incredibly, absolutely, remarkably, utterly</em>)</li>
+    <li>At least 2 vocabulary words from this week's list</li>
+  </ul>
+  <div class="feedback info" id="writingFb"></div>
+  <button class="btn" onclick="checkWriting()">Check my writing</button>
+  <button class="btn ghost" id="writingNext" style="display:none;" onclick="go(4)">Next: Speaking →</button>
+</div>
+
+<!-- ===================== SCREEN 4 — SPEAKING ===================== -->
+<div class="screen" id="s4">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span><span></span></div>
+  <h2><span class="tag">4 · Speak ⭐</span> Describe It Out Loud</h2>
+  <div class="intro-note">Give a <strong>1 to 2 minute spoken description</strong> of the hidden gem you wrote about in Part 3. <strong>Word stress:</strong> pay close attention to the multi-syllable vocabulary (a-MEN-i-ties, OR-di-nance, di-LAP-i-da-ted). <strong>Intonation:</strong> use strong voice inflection on your intensifiers, the way real marketing &ldquo;hype&rdquo; sounds. <strong>Pro tip:</strong> try not to pause or stumble over the order of your stacked adjectives.</div>
+
+  <div class="speak-box">
+    <div class="timer" id="timer">0:00</div>
+    <div class="mic-status" id="micStatus">Tap the button and start speaking.</div>
+    <div class="btnrow" style="justify-content:center;">
+      <button class="btn" id="recBtn" style="margin-top:6px;" onclick="toggleRec()">🎤 Start speaking</button>
+    </div>
+    <div class="transcript" id="transcript">Your words will appear here…</div>
+  </div>
+  <div class="tip">Tip: if the microphone doesn't start, allow mic access in your
+  browser, or just keep going — your "Finish" button still works.</div>
+  <div class="feedback info" id="speakFb"></div>
+  <button class="btn" onclick="go(5)">Next: Language in Use →</button>
+</div>
+
+<!-- ===================== SCREEN 5 — LANGUAGE IN USE ===================== -->
+<div class="screen" id="s5">
+  <div class="progress"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="now"></span></div>
+  <h2><span class="tag">5 · Language</span> Adjective Order: Pick the Correct Sentence</h2>
+  <div class="intro-note">Only <strong>one</strong> sentence in each group is grammatically correct and sounds natural to a native speaker. Choose the <strong>correct</strong> one.</div>
+
+  <div id="luQs"></div>
+  <button class="btn" onclick="finish()">See my results &amp; finish →</button>
+</div>
+
+<!-- ===================== SCREEN 6 — RESULTS ===================== -->
+<div class="screen" id="s6">
+  <div class="brand">English Class · SQA Education</div>
+  <h1 style="margin-bottom:14px;">Nice work! 🎉</h1>
+  <div class="scorebig" id="finalPct">0%</div>
+  <div class="scoreline" id="finalLine">—</div>
+  <div class="breakdown" id="breakdown"></div>
+  <div style="background:var(--lilac);border:1px solid var(--line);border-radius:11px;
+       padding:12px 15px;font-size:.88rem;color:var(--purple-dark);margin:4px 0 8px;">
+    ℹ️ This score shows the <strong>75 auto-graded points</strong> (reading,
+    vocabulary, speaking, language). Your <strong>writing is worth 25 more points</strong>
+    and will be graded by your teacher — so your final mark will be higher than the number above.
+  </div>
+  <p style="font-size:.9rem;color:var(--muted);">Your answers, writing, and spoken
+  story are recorded below. Press Finish to send everything to your teacher.</p>
+  <button class="btn" id="finishBtn" onclick="submitAll()">Finish →</button>
+  <div class="success" id="successMsg">✓ Sent! Your homework is complete. You can close this page.</div>
+</div>
+
+</div>
+<div style="text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px;">
+  SQA Education · Conversation Course · Term IV 2026
+</div>
+</div>
+
+<iframe name="sqa_sink" style="display:none;"></iframe>
+
+<script>
+/* ---------- content banks ---------- */
+const READING_LABEL="Reading comprehension";
+const SPEAKING_LABEL="Speaking \u2014 your hidden gem \u2b50";
+const LU_LABEL="Adjective order";
+const SPEAK_TARGET=60;
+const SPEAK_TIER2=40;
+const SPEAK_TIER3=20;
+const LESSON_WORDS=["ordinance", "dilapidated", "vicinity", "amenities", "unpretentious", "patronize", "best-kept secret", "incredibly", "absolutely", "remarkably", "utterly", "hidden gem"];
+const readingBank=[
+ {
+  "q": "1. What is the primary argument of the passage?",
+  "opts": [
+   "Large public transit hubs are causing major economic damage to local cities.",
+   "Independent, local hidden gems provide an invisible infrastructure essential for immigrant integration.",
+   "Modern urban ordinances should look to ban corporate developments entirely.",
+   "Casual tourists are ruining the authentic nature of local neighborhood establishments."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "2. According to the text, why are independent local businesses frequently pushed to the edges of cities?",
+  "opts": [
+   "They fail to attract a high volume of multi-generational customers.",
+   "Local city laws and tax policies frequently favor large corporate entities.",
+   "They are built out of materials that fall below standard building codes.",
+   "New immigrants prefer to spend money at major mainstream chains."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "3. What is a key difference between corporate retail chains and localized hidden gems as described by the author?",
+  "opts": [
+   "Corporate chains are much safer to patronize after dark.",
+   "Corporate chains charge higher prices for standard basic items.",
+   "Hidden gems offer opportunities for authentic social interaction rather than just standard transactions.",
+   "Hidden gems are much easier to locate using municipal maps."
+  ],
+  "answer": 2
+ },
+ {
+  "q": "4. What can be inferred about the author's view on wealthy tourists who visit neighborhood diners?",
+  "opts": [
+   "They fully appreciate the cultural and economic importance of the establishment to locals.",
+   "They are intentionally trying to push out the resident immigrant populations.",
+   "They misinterpret the deeper sociological value of the diner by focusing only on its superficial look.",
+   "They provide the primary financial funding that keeps the dilapidated business open."
+  ],
+  "answer": 2
+ },
+ {
+  "q": "5. Based on the final paragraph, what would most likely happen to an immigrant neighborhood if its local &ldquo;hidden gems&rdquo; were completely replaced by modern corporate complexes?",
+  "opts": [
+   "New immigrants would adapt faster to American society by using corporate services.",
+   "The neighborhood would experience a critical loss of informal community resources and mutual support networks.",
+   "The city council would see a massive decrease in overall property tax revenue.",
+   "Tourists would stop visiting the city altogether due to a lack of visual novelty."
+  ],
+  "answer": 1
+ }
+];
+const vocabWords=["amenities", "best-kept secret", "dilapidated", "ordinance", "patronize", "unpretentious", "vicinity"];
+const vocabBank=[
+ {
+  "s": "The city safety inspector forced the warehouse to close down because the structure was completely ___, citing broken structural beams and a collapsing roof.",
+  "a": "dilapidated"
+ },
+ {
+  "s": "Because our local neighborhood lacks basic public ___ like parks, public benches, and working streetlights, families have nowhere to gather.",
+  "a": "amenities"
+ },
+ {
+  "s": "The city council recently passed a strict municipal ___ that outlaws all commercial delivery trucks from parking on residential streets past 8:00 PM.",
+  "a": "ordinance"
+ },
+ {
+  "s": "I do not like going to overpriced, flashy restaurants downtown; I prefer simple, ___ spots where the staff is welcoming and the food is cooked like a home meal.",
+  "a": "unpretentious"
+ },
+ {
+  "s": "If you live in the immediate ___ of the main train station, you will have to deal with a significant amount of traffic and noise outside your window.",
+  "a": "vicinity"
+ },
+ {
+  "s": "That tiny, family-owned bakery in the alley is the town's ___; almost no one knows it exists, but they make the best croissants in the entire state.",
+  "a": "best-kept secret"
+ },
+ {
+  "s": "As immigrants, we made a conscious decision to ___ local minority-owned businesses to help invest our hard-earned money back into our own community.",
+  "a": "patronize"
+ }
+];
+const luBank=[
+ {
+  "q": "1. Which sentence uses correct adjective order and intensifiers?",
+  "opts": [
+   "We walked down a narrow, brick, incredibly picturesque alleyway to find the café.",
+   "We walked down an incredibly picturesque, narrow, brick alleyway to find the café.",
+   "We walked down a brick, narrow, absolutely picturesque alleyway to find the café.",
+   "We walked down an exceptionally brick, narrow, picturesque alleyway to find the café."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "2. Which sentence uses correct adjective order and intensifiers?",
+  "opts": [
+   "The owner opened an utterly quiet, small, old, wooden establishment near the river.",
+   "The owner opened a small, wooden, remarkably quiet, old establishment near the river.",
+   "The owner opened a remarkably quiet, small, old, wooden establishment near the river.",
+   "The owner opened an absolutely wooden, old, small, quiet establishment near the river."
+  ],
+  "answer": 2
+ },
+ {
+  "q": "3. Which sentence uses correct adjective order and intensifiers?",
+  "opts": [
+   "I found a highly breathtaking, ancient, stone monument hidden deep in the forest.",
+   "I found an absolutely breathtaking, ancient, stone monument hidden deep in the forest.",
+   "I found a stone, ancient, completely breathtaking monument hidden deep in the forest.",
+   "I found an ancient, stone, remarkably breathtaking monument hidden deep in the forest."
+  ],
+  "answer": 1
+ },
+ {
+  "q": "4. Which sentence uses correct adjective order and intensifiers?",
+  "opts": [
+   "They serve dinner on exceptionally charming, tiny, retro, ceramic plates.",
+   "They serve dinner on ceramic, retro, tiny, absolutely charming plates.",
+   "They serve dinner on tiny, retro, ceramic, highly charming plates.",
+   "They serve dinner on exceptionally retro, ceramic, tiny, charming plates."
+  ],
+  "answer": 0
+ },
+ {
+  "q": "5. Which sentence uses correct adjective order and intensifiers?",
+  "opts": [
+   "The town is famous for its concrete, bustling, remarkably modern civic hubs.",
+   "The town is famous for its remarkably high-tech, bustling, concrete civic hubs.",
+   "The town is famous for its absolutely concrete, modern, bustling civic hubs.",
+   "The town is famous for its bustling, concrete, utterly modern civic hubs."
+  ],
+  "answer": 1
+ }
+];
+
+/* ---------- state ---------- */
+const STATE={reading:0,vocab:0,writing:0,speaking:0,lu:0,
+  writingText:"",spokenText:"",speakSecs:0};
+const MAX={reading:20,vocab:20,writing:0,speaking:25,lu:10};
+const TOTAL=100;
+
+/* ---------- class sections ---------- */
+(function(){
+  const sel=document.getElementById('classSelect');
+  CONFIG.CLASSES.forEach((c,i)=>{
+    const o=document.createElement('option');
+    o.value=i;o.textContent=c.label;sel.appendChild(o);
+  });
+})();
+
+/* ---------- navigation ---------- */
+function go(n){
+  if(n===1){
+    const nm=document.getElementById('studentName').value.trim();
+    if(!nm){alert('Please type your name first.');return;}
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ===================== SECTION 1 — READING ===================== */
+(function(){
+  const c=document.getElementById('readingQs');
+  readingBank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='q';
+    let h='<div class="qtext">'+item.q+'</div>';
+    item.opts.forEach((o,j)=>{
+      h+='<label class="opt" data-q="'+i+'"><input type="radio" name="r'+i+'" value="'+j+'">'+o+'</label>';
+    });
+    d.innerHTML=h;c.appendChild(d);
+  });
+  c.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const qi=opt.dataset.q;
+      c.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');opt.querySelector('input').checked=true;
+    });
+  });
+})();
+function scoreReading(){
+  let correct=0;
+  readingBank.forEach((item,i)=>{
+    const sel=document.querySelector('input[name="r'+i+'"]:checked');
+    const wrap=document.querySelectorAll('#readingQs .q')[i];
+    if(sel){
+      const val=+sel.value;
+      wrap.querySelectorAll('.opt')[item.answer].classList.add('correct');
+      if(val===item.answer)correct++;
+      else wrap.querySelectorAll('.opt')[val].classList.add('wrong');
+    }
+  });
+  STATE.reading=Math.round(correct/readingBank.length*MAX.reading);
+}
+
+/* ===================== SECTION 2 — VOCABULARY ===================== */
+(function(){
+  const wb=document.getElementById('wordbank');
+  vocabWords.forEach(w=>{const c=document.createElement('span');c.className='chip';c.textContent=w;wb.appendChild(c);});
+  const c=document.getElementById('vocabQs');
+  vocabBank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='gap';
+    let opts='<option value="">— choose —</option>';
+    vocabWords.forEach(w=>{opts+='<option value="'+w+'">'+w+'</option>';});
+    d.innerHTML='<label>'+(i+1)+'. '+item.s+'</label><select id="v'+i+'">'+opts+'</select>';
+    c.appendChild(d);
+  });
+})();
+function scoreVocab(){
+  let correct=0;
+  vocabBank.forEach((item,i)=>{
+    const v=document.getElementById('v'+i).value;
+    if(v && v.toLowerCase()===item.a.toLowerCase())correct++;
+  });
+  STATE.vocab=Math.round(correct/vocabBank.length*MAX.vocab);
+}
+
+/* ===================== SECTION 3 — WRITING (teacher-graded) ===================== */
+function checkWriting(){
+  const txt=document.getElementById('writingText').value.trim();
+  STATE.writingText=txt;
+  const fb=document.getElementById('writingFb');
+  const words=txt.split(/\s+/).filter(Boolean);
+  const sentences=txt.split(/[.!?]+/).map(s=>s.trim()).filter(Boolean);
+  let msg='<strong>Saved \u2014 your teacher will read and grade this.</strong><br>';
+  msg+='\ud83d\udcdd '+words.length+' words \u00b7 '+sentences.length+' sentences';
+  if(words.length<15)msg+='<br>\ud83d\udca1 This looks short \u2014 try to write a bit more before moving on.';
+  fb.innerHTML=msg;fb.className='feedback show info';
+  document.getElementById('writingNext').style.display='inline-block';
+}
+
+/* ===================== SECTION 4 — SPEAKING ===================== */
+let recognition=null,recording=false,timerInt=null,secs=0;
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function toggleRec(){recording?stopRec():startRec();}
+function startRec(){
+  secs=0;document.getElementById('timer').textContent='0:00';
+  STATE.spokenText='';
+  const tEl=document.getElementById('transcript');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=null;
+  if(SR){
+    try{
+      recognition=new SR();
+      recognition.continuous=true;
+      recognition.interimResults=true;
+      recognition.lang='en-US';
+      let finalT='';
+      const norm=x=>x.toLowerCase().replace(/\s+/g,' ').trim();
+      recognition.onresult=e=>{
+        let interim='';
+        for(let i=e.resultIndex;i<e.results.length;i++){
+          const t=e.results[i][0].transcript;
+          if(e.results[i].isFinal){
+            const tt=t.trim(), ft=finalT.trim();
+            if(!tt)continue;
+            /* Android Chrome marks each growing interim hypothesis as final:
+               if the new final extends everything so far, replace instead of append */
+            if(ft&&norm(tt).indexOf(norm(ft))===0){finalT=tt+' ';}
+            else if(ft&&norm(ft).indexOf(norm(tt))===0){/* duplicate/subset: skip */}
+            else{finalT+=tt+' ';}
+          } else interim+=t;
+        }
+        STATE.spokenText=(finalT+interim).trim();
+        tEl.textContent=STATE.spokenText||'Listening…';
+      };
+      recognition.onerror=ev=>{
+        if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
+          document.getElementById('micStatus').textContent=
+            'Microphone blocked. Allow mic access in your browser, then tap Start again.';
+        } else if(ev.error==='no-speech'){
+          /* harmless on Safari — ignore */
+        } else {
+          document.getElementById('micStatus').textContent=
+            'Speech capture paused — keep speaking out loud, your time still counts.';
+        }
+      };
+      recognition.onend=()=>{
+        if(recording){try{recognition.start();}catch(e){}}
+      };
+      recognition.start();
+    }catch(e){
+      recognition=null;
+      document.getElementById('micStatus').textContent=
+        'Speech capture unavailable here — speak out loud, then press Next.';
+    }
+  } else {
+    document.getElementById('micStatus').textContent=
+      'This browser can\u2019t transcribe speech — speak out loud, then press Next.';
+  }
+  recording=true;
+  document.getElementById('recBtn').textContent='\u23f9 Stop';
+  document.getElementById('micStatus').innerHTML='<span class="pulse"></span>Recording \u2014 read your dialogue!';
+  timerInt=setInterval(()=>{secs++;document.getElementById('timer').textContent=fmt(secs);},1000);
+}
+function stopRec(){
+  recording=false;
+  if(recognition){try{recognition.onend=null;recognition.stop();}catch(e){}}
+  clearInterval(timerInt);
+  STATE.speakSecs=secs;
+  document.getElementById('recBtn').textContent='\ud83c\udfa4 Speak again';
+  document.getElementById('micStatus').textContent='Stopped. You can speak again or move on.';
+  scoreSpeaking();
+}
+function scoreSpeaking(){
+  const txt=(STATE.spokenText||'').trim();
+  const words=txt.split(/\s+/).filter(Boolean);
+  const low=txt.toLowerCase();
+  const fb=document.getElementById('speakFb');
+  let score=0;
+  const isReal=words.length>=6;
+  if(isReal){
+    if(STATE.speakSecs>=SPEAK_TARGET)score+=12;
+    else if(STATE.speakSecs>=SPEAK_TIER2)score+=9;
+    else if(STATE.speakSecs>=SPEAK_TIER3)score+=6;
+    else score+=3;
+    if(words.length>=60)score+=7;
+    else if(words.length>=30)score+=5;
+    else if(words.length>=12)score+=3;
+    else score+=1;
+    const hits=[...new Set(LESSON_WORDS.filter(w=>low.includes(w)))];
+    score+=Math.min(hits.length,3)*2;
+  }
+  score=Math.min(score,MAX.speaking);
+  STATE.speaking=score;
+  let msg='<strong>'+(isReal?'Great — '+score+'/'+MAX.speaking+' points.':'Speak a little more to score points — but you can still continue.')+'</strong><br>';
+  msg+='🎙️ '+STATE.speakSecs+' seconds · '+words.length+' words spoken';
+  fb.innerHTML=msg;fb.className='feedback show '+(score>=15?'ok':'info');
+}
+
+/* ===================== SECTION 5 — LANGUAGE IN USE ===================== */
+(function(){
+  const c=document.getElementById('luQs');
+  luBank.forEach((item,i)=>{
+    const d=document.createElement('div');d.className='q';
+    let h='<div class="qtext">'+item.q+'</div>';
+    item.opts.forEach((o,j)=>{
+      const letter=String.fromCharCode(65+j);
+      h+='<label class="opt" data-q="'+i+'"><input type="radio" name="lu'+i+'" value="'+j+'"><strong>'+letter+')</strong> '+o+'</label>';
+    });
+    d.innerHTML=h;c.appendChild(d);
+  });
+  c.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      const qi=opt.dataset.q;
+      c.querySelectorAll('.opt[data-q="'+qi+'"]').forEach(o=>o.classList.remove('sel'));
+      opt.classList.add('sel');opt.querySelector('input').checked=true;
+    });
+  });
+})();
+function scoreLU(){
+  let correct=0;
+  luBank.forEach((item,i)=>{
+    const sel=document.querySelector('input[name="lu'+i+'"]:checked');
+    const wrap=document.querySelectorAll('#luQs .q')[i];
+    if(sel){
+      const val=+sel.value;
+      wrap.querySelectorAll('.opt')[item.answer].classList.add('correct');
+      if(val===item.answer)correct++;
+      else wrap.querySelectorAll('.opt')[val].classList.add('wrong');
+    }
+  });
+  STATE.lu=Math.round(correct/luBank.length*MAX.lu);
+}
+
+/* ===================== RESULTS ===================== */
+function finish(){
+  scoreReading();scoreVocab();scoreLU();
+  if(!STATE.writingText)STATE.writingText=document.getElementById('writingText').value.trim();
+  const pct=Math.round(
+    (STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu)/TOTAL*100);
+  document.getElementById('finalPct').textContent=pct+'%';
+  document.getElementById('finalLine').textContent=
+    (pct>=75?'Top marks on the auto-graded sections!':pct>=50?'Good effort — keep practicing!':'Completed!');
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=
+    row(READING_LABEL,STATE.reading,MAX.reading)+
+    row('Vocabulary',STATE.vocab,MAX.vocab)+
+    writingRow()+
+    row(SPEAKING_LABEL,STATE.speaking,MAX.speaking)+
+    row(LU_LABEL,STATE.lu,MAX.lu)+
+    row('Total',STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu,TOTAL);
+  go(6);
+}
+function row(label,got,max){
+  return '<div><span>'+label+'</span><span>'+got+' / '+max+'</span></div>';
+}
+function writingRow(){
+  return '<div><span>Writing</span><span style="color:var(--purple-light);">graded by teacher</span></div>';
+}
+
+/* ===================== SILENT SUBMIT ===================== */
+function submitAll(){
+  const pct=Math.round(
+    (STATE.reading+STATE.vocab+STATE.writing+STATE.speaking+STATE.lu)/TOTAL*100);
+  const E=CONFIG.ENTRY;
+  const data={};
+  const chosen=CONFIG.CLASSES[+document.getElementById('classSelect').value]||CONFIG.CLASSES[0];
+  data[E.studentName]=document.getElementById('studentName').value.trim();
+  data[E.classCode]=chosen.code;
+  data[E.session]=CONFIG.SESSION_LABEL;
+  data[E.listening]=STATE.reading;
+  data[E.vocab]=STATE.vocab;
+  data[E.writing]="";
+  data[E.speaking]=STATE.speaking;
+  data[E.grammar]=STATE.lu;
+  data[E.percent]=pct;
+  data[E.writingText]=STATE.writingText||'(none)';
+  data[E.aiFeedback]=STATE.spokenText||'';
+  data[E.teacher]=chosen.teacher;
+
+  const f=document.createElement('form');
+  f.action=CONFIG.FORM_URL;f.method='POST';f.target='sqa_sink';
+  for(const k in data){
+    const inp=document.createElement('input');
+    inp.type='hidden';inp.name=k;inp.value=data[k];f.appendChild(inp);
+  }
+  document.body.appendChild(f);
+  try{f.submit();}catch(e){}
+  document.getElementById('finishBtn').style.display='none';
+  document.getElementById('successMsg').classList.add('show');
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
